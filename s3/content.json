@@ -1,0 +1,9 @@
+{
+    "help": "Welcome to the Mario Sessa (MaSe) portal. You can explore everything about me here.\n\nThe current list of command are currently available in this version:\n - help ::--> to check the commands available and their uses. Digit help if you want to explore more about the portal command list.\n - ipconfig ::--> display the curreent IP of the client. Every sensitive information are not available server-side. The current IP is taken by ipify API.\n\nIf you want to let me a feedback, please digit \"feedback\" and write some comments there. Thank you.\n",
+    "project": {
+        "help": "PROJECT(8)\n\n\tinfo: this command is used to list, check and go to my personal and professional projects.\n\n\tusage: project [options] [-p] <projectname> [--verbose] [parameters]\n\n\toptions:\n\t\tlist\n\t\tcheck\n\t\tgoto\n\n\texamples:\n\t\tproject list \n\t\tproject check -p <projectname>\n\t\tproject check -p <projectname> --verbose\n\t\tproject goto -p <projectname>\n\nYou can't understand how to use commands? Please check the guidelines with \"man\" digits.\n",
+        "list" : "",
+        "check" : "",
+        "goto" : ""
+    }
+}
