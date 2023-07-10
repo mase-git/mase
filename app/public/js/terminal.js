@@ -1,17 +1,94 @@
 let content = {
-  help: 'Welcome to the Mario Sessa (MaSe) portal. You can explore everything about me here.\n\nThe current list of command are currently available in this version:\n\n- help\n- ipconfig \n- whoami \n- curriculum \n- project\n\nFor more information about the command usage, digit: "[command] --help"\n\nIf you want to let me a feedback, please digit "feedback" and write some comments there. Thank you.\n',
-  project: {
-    help: '\tinfo: this command is used to list, check and go to my personal and professional projects.\n\n\tusage: project [options] [-p] <projectname> [--verbose] [parameters]\n\n\toptions:\n\t\tlist\n\t\tcheck\n\t\tgoto\n\n\texamples:\n\t\tproject list \n\t\tproject check -p <projectname>\n\t\tproject check -p <projectname> --verbose\n\t\tproject goto -p <projectname>\n\nYou can\'t understand how to use commands? Please check the guidelines with "man" digits.\n',
-    list: "",
-    check: "",
-    goto: "",
+  help: 'Welcome to the Mario Sessa (MaSe) portal. You can explore everything about me here.\n\nThe current list of command are currently available in this version:\n\n- help\n- ipconfig \n- whoami \n- cd \n- ls \n- cat\n\nFor more information about the command usage, digit: "[command] --help"\n\nIf you want to let me a feedback, please digit "feedback" and write some comments there. Thank you.\n',
+  cat: "",
+  cd: "",
+  ls: {
+    help: "LS(1)                       General Commands Manual                      LS(1)\n\nNAME\n\t\tls – list directory contents\n\nSYNOPSIS\n\t\tls [-@ABCFGHILOPRSTUWabcdefghiklmnopqrstuvwxy1%,] [--color=when]\n\t\t[-D format] [file ...]\n\nDESCRIPTION\n\t\tFor each operand that names a file of a type other than directory, ls\n\t\tdisplays its name as well as any requested, associated information.  For\n\t\teach operand that names a file of type directory, ls displays the names\n\t\tof files contained within that directory, as well as any requested,\n\t\tassociated information.\n\n",
+    filenames: ["about.md", "project.txt", "curriculum.txt", "hackme.txt"],
   },
   ipconfig: "",
-  hackme: "",
 };
 
 function parseArgs(args) {
-  return args.split(/\s+/);
+  return args.trimStart().split(/\s+/);
+}
+
+function parseHelp(self) {
+  try {
+    self.echo(content.help);
+  } catch (e) {
+    self.echo('Terminal currently is not available for the command "help"');
+  }
+}
+
+function displayDirectory(self) {
+  let string = "";
+  let i = 0;
+  content["ls"]["filenames"].forEach((el) =>{
+    if(i % 5 == 0 && i != 0){
+      string += "\n";
+    }
+    string += el + "\t\t";
+    i++;
+    if(i == content["ls"]["filenames"].length){
+      string = string.substring(0, string.length - 2)
+    }
+  })
+  self.echo(string);
+}
+
+function parseLs(self, args) {
+  if (args && args.length == 2) {
+    switch (args[1]) {
+      case "--help":
+        self.echo(content["ls"]["help"]);
+        break;
+      default:
+        const characters = "-@ABCFGHILOPRSTUWabcdefghiklmnopqrstuvwxy1%";
+        const string = args[1];
+
+        if (
+          string.startsWith("-") &&
+          string.match(new RegExp(`[${characters}]`))
+        ) {
+          displayDirectory(self); // bored to support every display modes.
+        }
+    }
+  } else if (args && args.length == 1) {
+    displayDirectory(self); // default command 
+  } else {
+    throw new Error("Invalid command");
+  }
+}
+
+function displayIpInfo(self, data) {
+  try {
+    self.echo(data["ip"]);
+  } catch (e) {
+    self.echo("ipconfig is not available, please try another command.");
+  }
+}
+
+async function parseIpConfig(self) {
+  await fetch("https://api.ipify.org?format=json")
+    .then((response) => response.json())
+    .then((data) => displayIpInfo(self, data))
+    .catch((err) => self.echo("Error during the ipconfig command processing."));
+}
+
+function checkVoidCommand(self, args){
+  {
+    console.log('It is: ' + args[0])
+    if(/^[\t\n\s]*$/.test(args[0])){
+      // void command 
+    } else {
+      self.echo(
+        "Command: " +
+          args[0] +
+          ' not found. Try with "help" and check the current format.'
+      );
+    }
+  }
 }
 
 async function getContent() {
@@ -52,97 +129,23 @@ const term = $("#terminal").terminal(
         if (await checkCommandInput(args)) {
           switch (args[0]) {
             case "help":
-              {
-                try {
-                  this.echo(content.help);
-                } catch (e) {
-                  this.echo(
-                    'Terminal currently is not available for the command "help"'
-                  );
-                }
-              }
+              parseHelp(this);
               break;
-            case "quit":
-              {
-                this.exec("close", true);
-              }
-              break;
-            case "project":
-              {
-                if (args.length > 1) {
-                  let command = args[1];
-                  switch (command) {
-                    case "--help":
-                      this.echo("PROJECT(8)\n").echo(
-                        content["project"]["help"]
-                      );
-                      break;
-                    case "list":
-                      this.echo(content["project"]["list"]);
-                      break;
-                    case "check":
-                      {
-                        if (args.length > 2) {
-                          try {
-                            // TODO
-                            // fetching data from the AWS backend
-                            // if args[2] is a project, display the project info else return ann error message
-                          } catch (e) {
-                            this.echo(
-                              'Terminal currently is not available for the command "project check"'
-                            );
-                          }
-                        } else {
-                          this.echo(
-                            'Wrong usage of the command "project check". Read the help documentation.'
-                          ).echo(content["project"]["help"]);
-                        }
-                      }
-                      break;
-                    case "goto":
-                      {
-                        // TODO
-                        // not implemented yet
-                      }
-                      break;
-                    default:
-                      this.echo(
-                        'Command options is not available for the "project" command.'
-                      ).echo(content["project"]["help"]);
-                  }
-                } else {
-                  this.echo('Wrong usage for the command "project".');
-                  this.echo(content["project"]["help"]);
-                }
-              }
+            case "ls":
+              parseLs(this, args);
               break;
             case "ipconfig":
-              {
-                await fetch("https://api.ipify.org?format=json")
-                  .then((response) => response.json())
-                  .then((data) => this.echo("IP: " + data.ip))
-                  .catch((err) =>
-                    this.echo("Error during the ipconfig command processing.")
-                  );
-              }
+              await parseIpConfig(this);
               break;
-            default: {
-              this.echo(
-                "Command: " +
-                  args[0] +
-                  ' not found. Try with "help" and check the current format.'
-              );
-            }
+            default: 
+            checkVoidCommand(this, args);
           }
         } else {
-          this.echo(
-            args[0] +
-              ' not found. Try with "help" to check the available commands.'
-          );
+          checkVoidCommand(this, args);
         }
       } else {
         this.echo(
-          'Void command detected, digit "help" to check the correct format.'
+          ''
         );
       }
     } catch (e) {
